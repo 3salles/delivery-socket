@@ -1,0 +1,19 @@
+{
+  "name": "sockets_delivery",
+  "version": "1.0.0",
+  "description": "Supermarket delivery API with sockets",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon src/server.js",
+    "client": "node src/client.js"
+  },
+  "author": "Beatriz Salles and Lucas Cleopas",
+  "license": "MIT",
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  },
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "net": "^1.0.2"
+  }
+}
