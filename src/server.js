@@ -23,7 +23,6 @@ let cart = {};
 cart.order = [];
 cart.total = 0;
 
-
 function showMenu(socket) {
   socket.write("Olá. Seja bem vindo ao Market SD. \n");
   socket.write("Veja as opções de nosso catálogo. \n");
@@ -63,15 +62,15 @@ function showMenu(socket) {
   socket.write("Escolha o seu pedido digitando o código do produto. Ex: B2");
   socket.write("\n");
   socket.write(
-    "Digite um produto de cada vez, separando-os por um [ENTER]. Para finalizar o pedido digite 0"
+    "Digite um produto de cada vez, separando-os por um [ENTER]. Para finalizar o pedido digite [T]."
   );
 }
 
 function showSecondaryMenu(socket) {
   socket.write("\n");
-  socket.write("Digite [1] para finalizar pedido.");
+  socket.write("Digite [P] para finalizar pedido.");
   socket.write("\n");
-  socket.write("Digite [2] para remover item do pedido.");
+  socket.write("Digite [R] para remover item do pedido.");
 }
 
 function catchOrder(order) {
@@ -122,13 +121,13 @@ function endOrder(socket) {
   showSecondaryMenu(socket);
 }
 
-function finishPayment(socket){
-  cart.total = 0
+function finishPayment(socket) {
+  cart.total = 0;
   socket.write("#-----------------------------------------#");
   socket.write("\n");
   socket.write("            PEDIDO FINALIZADO!");
   socket.write("\n");
-  socket.write(`Carrinho: R$ ${cart.total}`)
+  socket.write(`Carrinho: R$ ${cart.total}`);
   socket.write("\n");
   socket.write("\n");
   socket.write("            OBRIGADA PELA PREFERÊNCIA!");
@@ -152,6 +151,16 @@ function finishPayment(socket){
 //   socket.write("Digite [E] para em espécie");
 // }
 
+function finishConnection(socket) {
+  socket.write("\n");
+  socket.write("\n");
+  socket.write("Já vai? 🥺");
+  socket.write("\n");
+  socket.write("Agradecemos sua preferência!");
+  socket.write("\n");
+  socket.write("Sua conexão será finalizada em alguns instantes...");
+  socket.end();
+}
 
 function connectionListener(socket) {
   console.log("🟢 Conectado!");
@@ -161,28 +170,24 @@ function connectionListener(socket) {
 
     if (command.length == 2) {
       catchOrder(command);
+    } else {
+      switch (command) {
+        case "T":
+          endOrder(socket);
+          break;
+        case "P":
+          finishPayment(socket);
+          break;
+        case "S":
+          finishConnection(socket);
+          break;
+        case "N":
+          showMenu(socket);
+          break;
+        default:
+          socket.write("Comando não reconhecido. Tente outro\n");
+      }
     }
-    if (command == 0) {
-      endOrder(socket);
-      
-    }
-    if(command == 1){
-      finishPayment(socket)
-    }
-
-    if (command === 'S'){
-      socket.write("Já vai? 🥺");
-      socket.write("\n");
-      socket.write("Agradecemos sua preferência!");
-      socket.write("\n");
-      socket.write("Sua conexão será finalizada em alguns instantes...");
-      socket.end();
-    }
-
-    if (command === 'N'){
-      showMenu(socket)
-    }
-
   });
 
   socket.on("end", function () {
