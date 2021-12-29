@@ -1,6 +1,6 @@
 const net = require("net");
 
-let products = {
+const products = {
   BEBIDAS: {
     Água: "1.90",
     Chá: "6.90",
@@ -23,7 +23,10 @@ let cart = {};
 cart.order = [];
 cart.total = 0;
 
-function showMenu(socket) {
+
+
+// Função que mostra o menu principal
+function primaryMenu(socket) {
   socket.write("Olá. Seja bem vindo ao Market SD. \n");
   socket.write("Veja as opções de nosso catálogo. \n");
 
@@ -57,6 +60,7 @@ function showMenu(socket) {
       socket.write("\n");
     });
   });
+  
   socket.write("###########################################");
   socket.write("\n");
   socket.write("Escolha o seu pedido digitando o código do produto. Ex: B2");
@@ -66,18 +70,29 @@ function showMenu(socket) {
   );
 }
 
-function showSecondaryMenu(socket) {
+// Função que mostra as opções após encerrar pedido
+function secondaryMenu(socket) {
   socket.write("\n");
-  socket.write("Digite [P] para finalizar pedido.");
+  socket.write("Digite [F] para finalizar pedido.");
   socket.write("\n");
   socket.write("Digite [R] para remover item do pedido.");
 }
 
+// Função que mostra as opções quando finaliza o pagamento
+function systemMenu(socket){
+  socket.write("\n");
+  socket.write("Digite [S] para sair.");
+  socket.write("\n");
+  socket.write("Digite [N] para nova compra.");
+}
+
+// Função que pega os pedidos
 function catchOrder(order) {
   // Pegar código do produto
   // O código é obtido pegando a primeira letra da categoria e usando o index do produto
   let firstLetterOrder = `${order}`[0].toLocaleUpperCase();
   let orderIndex = `${order}`[1];
+  let code = firstLetterOrder + orderIndex
 
   for (category in products) {
     let categoryLetter = `${category}`[0];
@@ -91,7 +106,7 @@ function catchOrder(order) {
           Object.keys(products[category])[orderIndex]
         } - ${orderValue}\n`
       );
-      cart.order.push({name: clientOrder, price: orderValue});
+      cart.order.push({code: code, name: clientOrder, price: orderValue});
       cart.total = cart.total + orderValue;
 
       console.log(`Carrinho: R$ ${cart.total}`);
@@ -100,6 +115,7 @@ function catchOrder(order) {
   }
 }
 
+// Função que encerra o pedido e abre o menu secundário
 function endOrder(socket) {
   socket.write("#-----------------------------------------#");
   socket.write("\n");
@@ -123,11 +139,13 @@ function endOrder(socket) {
   socket.write("\n");
   socket.write("|---------DESEJA FINALIZAR PEDIDO?-------|");
   socket.write("\n");
-  showSecondaryMenu(socket);
+  secondaryMenu(socket);
 }
 
+// Função que finaliza o pagamento
 function finishPayment(socket) {
   cart.total = 0;
+  cart.order =[]
   socket.write("#-----------------------------------------#");
   socket.write("\n");
   socket.write("            PEDIDO FINALIZADO!");
@@ -137,26 +155,31 @@ function finishPayment(socket) {
   socket.write("\n");
   socket.write("            OBRIGADA PELA PREFERÊNCIA!");
   socket.write("\n");
-  socket.write("\n");
-  socket.write("Digite [S] para sair.");
-  socket.write("\n");
-  socket.write("Digite [N] para nova compra.");
+  systemMenu(socket)
 }
 
-// function paymentMethod(socket) {
-//   socket.write("#-----------------------------------------#");
-//   socket.write("\n");
-//   socket.write("            COMO IRÁ SERÁ FEITO O PAGAMENTO?");
-//   socket.write("\n");
-//   socket.write("\n");
-//   socket.write("Digite [P] para pix.");
-//   socket.write("\n");
-//   socket.write("Digite [C] para cartão");
-//   socket.write("\n");
-//   socket.write("Digite [E] para em espécie");
-// }
+// Função para remover produto da lista de pedido
+function removeProduct(socket, command) {
+  socket.write("#-----------------------------------------#");
+  socket.write("\n");
+  socket.write("            REMOVER PRODUTO");
+  socket.write("\n");
 
+  cart.order.map((product) => {
+    socket.write(`${product.code} - ${product.name} - ${product.price}`)
+    socket.write("\n");
+  })
+  socket.write("\n");
+  socket.write("Digite o código do item a ser removido, por exemplo [B2]");
+
+  cart.order = cart.order.filter((product) => product.code != command)
+
+}
+
+
+// Função que finaliza a conexão com socket
 function finishConnection(socket) {
+  cart = {}
   socket.write("\n");
   socket.write("\n");
   socket.write("Já vai? 🥺");
@@ -167,14 +190,6 @@ function finishConnection(socket) {
   socket.end();
 }
 
-function removeProduct(command, socket) {
-  let itemsCart = catchOrder(command),
-      categoryItem = itemsCart[0],
-      item = itemsCart[1];
-      socket.write(itemsCart);
-  delete cardapio[`${cat}`][`${desc}`]
-  console.log(cardapio);
-}
 
 function connectionListener(socket) {
   console.log("🟢 Conectado!");
@@ -189,19 +204,19 @@ function connectionListener(socket) {
         case "T":
           endOrder(socket);
           break;
-        case "P":
+        case "F":
           finishPayment(socket);
           break;
         case "S":
           finishConnection(socket);
           break;
         case "N":
-          showMenu(socket);
+          primaryMenu(socket);
           break;
         case 'R':
-          socket.write(`Pedidos: ${cart}`)
+          removeProduct(socket, command)
         default:
-          socket.write("Comando não reconhecido. Tente outro\n");
+          socket.write("\nComando não reconhecido. Tente outro\n");
       }
     }
   });
@@ -210,7 +225,7 @@ function connectionListener(socket) {
     console.log("🔴 Conexão encerrada!");
   });
 
-  showMenu(socket);
+  primaryMenu(socket);
 }
 
 // cria servidor
