@@ -91,30 +91,35 @@ function catchOrder(order) {
           Object.keys(products[category])[orderIndex]
         } - ${orderValue}\n`
       );
-      cart.order.push(clientOrder);
+      cart.order.push({name: clientOrder, price: orderValue});
       cart.total = cart.total + orderValue;
 
       console.log(`Carrinho: R$ ${cart.total}`);
+      console.log(cart.order)
     }
   }
 }
 
 function endOrder(socket) {
   socket.write("#-----------------------------------------#");
+  socket.write("\n");
   socket.write("            FINALIZAR PEDIDO");
 
   socket.write("\n");
   socket.write("\n");
 
-  for (item in cart.order) {
-    console.log(cart.order[item]);
-    socket.write(cart.order[item]);
+  cart.order.map((item) => {
+    console.log(item)
     socket.write("\n");
-  }
+    socket.write(`${item.name} - R$ ${item.price}`)
+    socket.write("\n");
+  })
+
 
   socket.write("#-----------------------------------------#");
   socket.write("\n");
   socket.write("TOTAL a pagar: R$ " + cart.total);
+  socket.write("\n");
   socket.write("\n");
   socket.write("|---------DESEJA FINALIZAR PEDIDO?-------|");
   socket.write("\n");
@@ -162,6 +167,15 @@ function finishConnection(socket) {
   socket.end();
 }
 
+function removeProduct(command, socket) {
+  let itemsCart = catchOrder(command),
+      categoryItem = itemsCart[0],
+      item = itemsCart[1];
+      socket.write(itemsCart);
+  delete cardapio[`${cat}`][`${desc}`]
+  console.log(cardapio);
+}
+
 function connectionListener(socket) {
   console.log("🟢 Conectado!");
 
@@ -184,6 +198,8 @@ function connectionListener(socket) {
         case "N":
           showMenu(socket);
           break;
+        case 'R':
+          socket.write(`Pedidos: ${cart}`)
         default:
           socket.write("Comando não reconhecido. Tente outro\n");
       }
