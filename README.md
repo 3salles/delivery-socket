@@ -33,7 +33,7 @@ Foi proposto a criação de um projeto em Node.js e sockets que simulasse um sis
   - [x] Colocar um produto no carrinho
   - [x] Remover um produto do carrinho
   - [x] Pagar o pedido
-  - [] Solicitar a entrega
+  - [ ] Solicitar a entrega
 
 ## :bricks: Instalação
 
